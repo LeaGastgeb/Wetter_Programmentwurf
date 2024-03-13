@@ -1,49 +1,60 @@
 # Autor : Lea Gastgeb
-# Datum: 01.03.2024
-# Version: 0.1
+# Datum: 13.03.2024
+# Version: 0.2
 # Licence: Open Source
 # Module Short Description: Interface to the database
 
-
-import sqlite3
+import requests
+import json
 
 class Database:
-    def __init__(self, db):
-        self.conn = sqlite3.connect(db)
-        self.cur = self.conn.cursor()
-        self.cur.execute('''
-                         CREATE TABLE IF NOT EXISTS weather_data (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            time DATETIME,
-                            temperature_max REAL NOT NULL,
-                            temperature_min REAL NOT NULL,
-                            precipitation_sum REAL,
-                            wind_speed REAL
-                            )'''
-                        )
-        self.conn.commit()
+    def __init__(self, url):
+        self.url = url
+        self.create_table()
 
-    def insert(self, time, temp_max, temp_min, humidity, wind_speed):
-        self.cur.execute('''
-                         INSERT INTO weather_data (time, temperature_max, temperature_min, precipitation_sum, wind_speed)
-                         VALUES (?, ?, ?, ?, ?)''',
-                         (time, temp_max, temp_min, humidity, wind_speed)
-                        )
-        self.conn.commit()
+    def create_table(self):
+        query = '''
+                CREATE TABLE IF NOT EXISTS weather_data (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    time DATETIME,
+                    temperature_max REAL NOT NULL,
+                    temperature_min REAL NOT NULL,
+                    precipitation_sum REAL,
+                    wind_speed REAL,
+                    station TEXT
+                )
+                '''
+        self.execute_query(query)
+
+    def insert(self, time, temp_max, temp_min, humidity, wind_speed, station):
+        query = '''
+                INSERT INTO weather_data (time, temperature_max, temperature_min, precipitation_sum, wind_speed, station)
+                VALUES (?, ?, ?, ?, ?, ?)
+                '''
+        params = (time, temp_max, temp_min, humidity, wind_speed, station)
+        self.execute_query(query, params)
 
     def fetch(self):
-        self.cur.execute('''
-                         SELECT * FROM weather_data
-                         ORDER BY time DESC'''
-                        )
-        rows = self.cur.fetchall()
-        return rows
-    
+        query = '''
+                SELECT * FROM weather_data
+                ORDER BY time DESC
+                '''
+        return self.execute_query(query)
+
     def delete(self):
-        self.cur.execute('''
-                         DELETE FROM weather_data'''
-                        )
-        self.conn.commit()
+        query = '''
+                DELETE FROM weather_data
+                '''
+        self.execute_query(query)
+
+    def execute_query(self, query, params=None):
+        data = {'query': query}
+        if params:
+            data['params'] = params
+
+        response = requests.post(f'{self.url}/db/execute', json=data)
+        response.raise_for_status()
+        return response.json()
 
     def __del__(self):
-        self.conn.close()
+        pass
