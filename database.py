@@ -5,7 +5,6 @@
 # Module Short Description: Interface to the database
 
 import requests
-import json
 
 class Database:
     def __init__(self, url):

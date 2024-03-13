@@ -1,3 +1,10 @@
+# Autor : Lea Gastgeb
+# Datum: 13.03.2024
+# Version: 0.2
+# Licence: Open Source
+# Module Short Description: Integration of the weather API and the database
+
+
 import requests
 from datetime import datetime 
 from database import Database
