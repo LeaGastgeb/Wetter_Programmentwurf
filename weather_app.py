@@ -2,7 +2,9 @@ import requests
 from datetime import datetime 
 from database import Database
 import pandas as pd
+from fastapi import FastAPI
 
+app = FastAPI()
 
 def fetch_weather_data():
     current_date = datetime.now().strftime('%Y-%m-%d')
@@ -58,6 +60,15 @@ def fetch_weather_data():
         else:
             print("Fehler beim Abrufen der Wetterdaten. Status Code: ", response.status_code)
             return None
+
+@app.get("/")
+async def read_root():
+    return {"Hello": "World"}
+
+@app.get("/weather")
+async def read_weather():
+    return fetch_weather_data().to_dict()
+
 
 def main():
     fetch_weather_data()
