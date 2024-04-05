@@ -1,49 +1,51 @@
 # Autor : Lea Gastgeb
-# Datum: 01.03.2024
-# Version: 0.1
+# Datum: 13.03.2024
+# Version: 0.2
 # Licence: Open Source
 # Module Short Description: Interface to the database
 
-
-import sqlite3
+from pymongo import MongoClient
 
 class Database:
-    def __init__(self, db):
-        self.conn = sqlite3.connect(db)
-        self.cur = self.conn.cursor()
-        self.cur.execute('''
-                         CREATE TABLE IF NOT EXISTS weather_data (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            time DATETIME,
-                            temperature_max REAL NOT NULL,
-                            temperature_min REAL NOT NULL,
-                            precipitation_sum REAL,
-                            wind_speed REAL
-                            )'''
-                        )
-        self.conn.commit()
+    def __init__(self, url):
+        self.client = MongoClient(url)
+        self.db = self.client.get_database()
+        self.weather_data = self.db.weather_data
 
-    def insert(self, time, temp_max, temp_min, humidity, wind_speed):
-        self.cur.execute('''
-                         INSERT INTO weather_data (time, temperature_max, temperature_min, precipitation_sum, wind_speed)
-                         VALUES (?, ?, ?, ?, ?)''',
-                         (time, temp_max, temp_min, humidity, wind_speed)
-                        )
-        self.conn.commit()
+    def insert(self, time, temp_max, temp_min, precipitation_sum, wind_speed, station):
+        data = {
+            "time": time,
+            "temperature_max": temp_max,
+            "temperature_min": temp_min,
+            "precipitation_sum": precipitation_sum,
+            "wind_speed": wind_speed,
+            "station": station
+        }
+        self.weather_data.insert_one(data)
 
     def fetch(self):
-        self.cur.execute('''
-                         SELECT * FROM weather_data
-                         ORDER BY time DESC'''
-                        )
-        rows = self.cur.fetchall()
-        return rows
-    
+        return list(self.weather_data.find().sort("time", -1))
+
     def delete(self):
-        self.cur.execute('''
-                         DELETE FROM weather_data'''
-                        )
-        self.conn.commit()
+        self.weather_data.delete_many({})
+
+    def delete_station(self, station):
+        self.weather_data.delete_many({"station": station})
+
+    def fetch_station(self, station):
+        return list(self.weather_data.find({"station": station}))
 
     def __del__(self):
-        self.conn.close()
+        self.client.close()
+
+# Beispiel zur Verwendung des Database-Objekts mit der neuen MongoDB-Verbindung
+if __name__ == "__main__":
+    mongo_url = "mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/weather?retryWrites=true&w=majority&appName=Weather"
+    db = Database(mongo_url)
+    # Beispiel zum Einfügen von Daten
+    db.insert("2024-03-17", 25.0, 15.0, 5.0, 10.0, "Stuttgart")
+    # Beispiel zum Abrufen von Daten
+    print("Weather data:")
+    for data in db.fetch():
+        print(data)
+    
