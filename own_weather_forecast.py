@@ -1,10 +1,15 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
+from weather_app import fetch_weather_data
+#import weather_app as wa
+import asyncio
 
 def get_weather_report():
     # get the current weather data from the database
     print("Getting the weather report of the last seven days.")
+    data = asyncio.run(fetch_weather_data('Stuttgart'))
+    print(data)
 
 def trainings_data():
     # data for testing
@@ -69,10 +74,11 @@ def get_weather_forecast():
 
 
 if __name__ == "__main__":
-    day1, day2, day3, day4, day5, day6, day7, day8 = trainings_data()
-    result = {"fday1": [], "fday2":[], "fday3":[], "fday4":[], "fday5":[], "fday6":[], "fday7":[]}
+    # day1, day2, day3, day4, day5, day6, day7, day8 = trainings_data()
+    # result = {"fday1": [], "fday2":[], "fday3":[], "fday4":[], "fday5":[], "fday6":[], "fday7":[]}
 
-    for para_nr in range (0, 4):
-        weather_forecast(1, para_nr, result, day1, day2, day3, day4, day5, day6, day7)
+    # for para_nr in range (0, 4):
+    #     weather_forecast(1, para_nr, result, day1, day2, day3, day4, day5, day6, day7)
 
-    print(result)
+    # print(result)
+    get_weather_report()
