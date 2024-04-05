@@ -93,9 +93,9 @@ async def read_root():
 
 @app.get("/weather")
 async def read_weather(request: Request):
-    num_clients = 10
-    await asyncio.gather(simulate_many_clients(num_clients), fetch_weather_data('Stuttgart'))
-    # client_ip = request.client.host
+    # num_clients = 10
+    # await asyncio.gather(simulate_many_clients(num_clients), fetch_weather_data('Stuttgart'))
+    # # client_ip = request.client.host
     # client_location = await get_location_from_ip(client_ip)
      
     return await fetch_weather_data("Stuttgart")
