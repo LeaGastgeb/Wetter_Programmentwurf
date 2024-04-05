@@ -58,24 +58,14 @@ def weather_forecast(run: int, para_nr: int, result: dict, day1, day2, day3, day
         # Add new value to the results
         result["fday" + str(run)].append(next_day)
 
-        # # Plot der Daten und der linearen Regression
-        # plt.scatter(X[:-1], y[:-1], color='blue')  # Die letzten Werte werden für den Plot entfernt
-        # plt.plot(X, model.predict(X), color='red', linewidth=2)
-        # plt.scatter(X[-1], y[-1], color='green', marker='x', s=100)  # Letzter Punkt für die Vorhersage
-        # plt.xlabel("X")
-        # plt.ylabel("y")
-        # plt.title("Lineares Regressionsmodell")
-        # plt.legend(["Lineare Regression", "Daten", "Vorhersage"])
-        # plt.grid(True)
-        # plt.show()
 
 def get_weather_forecast():
     day1, day2, day3, day4, day5, day6, day7 = get_weather_report()
     result = {"fday1": [], "fday2":[], "fday3":[], "fday4":[], "fday5":[], "fday6":[], "fday7":[]}
 
-
     for para_nr in range (0, 4):
-        weather_forecast(1, para_nr, result, day1, day2, day3, day4, day5, day6, day7)    
+        weather_forecast(1, para_nr, result, day1, day2, day3, day4, day5, day6, day7)
+    return result 
 
 
 if __name__ == "__main__":
