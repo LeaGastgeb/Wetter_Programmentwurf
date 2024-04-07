@@ -12,14 +12,15 @@ class Database:
         self.db = self.client.get_database()
         self.weather_data = self.db.weather_data
 
-    def insert(self, time, temp_max, temp_min, precipitation_sum, wind_speed, station):
+    def insert(self, time, temp_max, temp_min, precipitation_sum, wind_speed, station, pred=False):
         data = {
             "time": time,
             "temperature_max": temp_max,
             "temperature_min": temp_min,
             "precipitation_sum": precipitation_sum,
             "wind_speed": wind_speed,
-            "station": station
+            "station": station,
+            "predicted": pred
         }
         self.weather_data.insert_one(data)
 

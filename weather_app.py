@@ -18,7 +18,7 @@ async def fetch_weather_data(city):
     db = Database('mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/weather?retryWrites=true&w=majority&appName=Weather')
     db_data = db.fetch()
 
-    station_data_available = all(entry['time'] == (datetime.now() - timedelta(days=day)).strftime('%Y-%m-%d') and entry['station'] == city for day in range(7) for entry in db_data)
+    station_data_available = all(entry['time'] == (datetime.now() - timedelta(days=day)).strftime('%Y-%m-%d') and entry['station'] == city and entry["predicted"]==False for day in range(7) for entry in db_data)
 
     if station_data_available:
         for entry in db_data:
