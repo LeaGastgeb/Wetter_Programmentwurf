@@ -1,9 +1,15 @@
-import numpy as np
-from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as plt
-from weather_app import fetch_weather_data
-from datetime import datetime, timedelta
+# Autor : Johanna Luise Koenig
+# Datum: 08.04.2024
+# Version: 0.2
+# Licence: Open Source
+# Module Short Description: Generate for the next seven days a weather forecast based on the data from the last seven days and write them in the database
+
 import asyncio
+import numpy as np
+from database import Database
+from datetime import datetime, timedelta
+from weather_app import fetch_weather_data
+from sklearn.linear_model import LinearRegression
 
 def get_weather_report():
     # get the current weather data from the database
@@ -59,7 +65,6 @@ def weather_forecast(run: int, para_nr: int, result: dict, day1, day2, day3, day
             next_day = 0.0
 
         number = number + 1
-        
         X = np.append(X, number).reshape(-1, 1)
         y = np.append(y, next_day)
 
@@ -68,6 +73,7 @@ def weather_forecast(run: int, para_nr: int, result: dict, day1, day2, day3, day
 
 
 def get_weather_forecast():
+    db = Database('mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/weather?retryWrites=true&w=majority&appName=Weather')
     day_reports = get_weather_report()
     result = {"fday1": [], "fday2":[], "fday3":[], "fday4":[], "fday5":[], "fday6":[], "fday7":[]}
     # get the date
@@ -80,10 +86,12 @@ def get_weather_forecast():
     
     # get the final result
     final_result= []
+    
     for i in range(0, len(result)):
         # get todays date
         date = date + timedelta(days=1)
-
+        # write data in the database
+        db.insert(date.strftime("%Y-%m-%d"), result["fday"+str(i+1)][0], result["fday"+str(i+1)][1], result["fday"+str(i+1)][2], result["fday"+str(i+1)][3], day_reports["day"+str(i+1)][5], True)
         forecast= {
             'time': date.strftime("%Y-%m-%d"),
             'temperature_max': result["fday"+str(i+1)][0],

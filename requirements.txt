@@ -1,4 +1,8 @@
+asyncio==3.4.3
+datetime==5.5
 fastapi==0.110.0
+numpy==1.26.0
 pyrqlite==2.2.2
 pandas==2.0.3
 requests==2.31.0
+scikit-learn==3.3.0
