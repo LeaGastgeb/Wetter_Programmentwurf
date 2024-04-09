@@ -6,18 +6,15 @@
 
 
 import aiohttp
-import asyncio
 from datetime import datetime, timedelta
+from fastapi import FastAPI,  HTTPException
+
 from database import Database
-from fastapi import FastAPI, Request, HTTPException
-from functools import lru_cache
-from typing import List, Dict, Any
-import time
-import geocoder
+
 
 app = FastAPI()
 
-async def fetch_weather_data(city, lat, lon):
+async def fetch_weather_data(city, lat=48.78, lon=9.18):
     """
     Fetch weather data for a given city from the weather API or the database.
 
@@ -30,7 +27,6 @@ async def fetch_weather_data(city, lat, lon):
     try:
         db = Database('mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/weather?retryWrites=true&w=majority&appName=Weather')
         db_data = await db.fetch_station(city)  # Await the execution of the coroutine function
-        
 
         station_data_available = True  # Initialize with True
         for day in range(7):
@@ -55,7 +51,6 @@ async def fetch_weather_data(city, lat, lon):
             print("Station data available in the database")            
             for entry in db_data:
                 entry.pop('_id', None)
-            
             return db_data
 
         else:
@@ -87,6 +82,7 @@ async def fetch_weather_data(city, lat, lon):
                             await db.insert(time[i], temperature_max[i], temperature_min[i], precipitation_sum[i], wind_speed[i], station)
                         
                         db_data = await db.fetch_station(station)
+                        
                         for entry in db_data:
                             entry.pop('_id', None)
                         return db_data
@@ -101,7 +97,7 @@ async def fetch_weather_data(city, lat, lon):
 
 
 
-def validate_data(data: Dict[str, Any]) -> bool:
+def validate_data(data) :
     """
     Validiert die Wetterdaten.
 
@@ -118,7 +114,7 @@ def validate_data(data: Dict[str, Any]) -> bool:
         # Datum validieren
         datetime.strptime(data['time'], '%Y-%m-%d')
         # Temperaturwerte validieren
-        if not (-50 <= data['temperature_max'] <= 50 and -500 <= data['temperature_min'] <= data['temperature_max']):
+        if not (-50 <= data['temperature_max'] <= 50 and -50 <= data['temperature_min'] <= data['temperature_max']):
             return False
         if 'precipitation_sum' in data and not (0 <= data['precipitation_sum'] <= 1000):  # Annahme: Maximal 1000 mm
             return False
@@ -131,7 +127,7 @@ def validate_data(data: Dict[str, Any]) -> bool:
 
 
 
-def clean_data(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def clean_data(data):
     """
     Bereinigt die Wetterdaten, indem ungültige Datensätze entfernt werden.
 
@@ -143,124 +139,3 @@ def clean_data(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     cleaned_data = [record for record in data if validate_data(record)]
     return cleaned_data
-
-
-
-async def get_ip(request: Request):
-    client_ip = request.client.host
-    return client_ip
-
-
-
-async def get_location_from_ip(ip: str):
-    g = geocoder.ip('me')
-    location = g.city
-    lat = g.latlng[0]
-    lon = g.latlng[1]
-    return location, lat, lon
-
-
-async def simulate_client(client_id):
-    async with aiohttp.ClientSession() as session:
-        async with session.get("http://localhost:8000/weather") as response:
-            if response.status == 200:
-                data = await response.json()
-                print(f"Client {client_id}: Received weather data: {data}")
-            else:
-                print(f"Client {client_id}: Error retrieving weather data. Status code: {response.status}")
-
-
-
-async def simulate_many_clients(num_clients: int):
-    """
-    Simulate multiple clients accessing the /weather endpoint simultaneously.
-
-    Args:
-        num_clients (int): Number of clients to simulate.
-    """
-    tasks = [fetch_weather_data("Stuttgart", "48.78", "9.18") for _ in range(num_clients)]
-    await asyncio.gather(*tasks)
-
-
-
-# Caching the weather data for a certain period to reduce API calls
-@lru_cache(maxsize=None)
-async def cached_fetch_weather_data(city: str, lat, lon) -> List[Dict[str, Any]]:
-    """
-    Wrapper function to cache the result of fetch_weather_data function.
-
-    Args:
-        city (str): The name of the city for which weather data is to be fetched.
-
-    Returns:
-        List[Dict[str, Any]]: A list of dictionaries containing weather data for the specified city.
-    """
-    return await fetch_weather_data(city, lat, lon)
-
-
-
-@app.get("/")
-async def read_root() -> str:
-    """
-    Endpoint to get the root message of the API.
-
-    Returns:
-        str: Welcome message.
-    """
-    return "Welcome to our weather forecast system"
-
-
-
-@app.get("/weather")
-async def read_weather(request: Request) -> List[Dict[str, Any]]:
-    """
-    Endpoint to fetch weather data for a city.
-
-    Args:
-        request (Request): The request object.
-
-    Returns:
-        List[Dict[str, Any]]: A list of dictionaries containing weather data for the specified city.
-    """
-    client_ip = request.client.host
-    
-    client_location = await get_location_from_ip(client_ip)
-    print(f"Client IP: {client_ip}, Location: {client_location}")
-    start_time = time.time()  
-
-    num_clients = 1
-    await simulate_many_clients(num_clients)
-
-    end_time = time.time() 
-    duration = end_time - start_time  
-
-    print(f"Processing time for /weather request: {duration} seconds")
-
-    return await fetch_weather_data(client_location[0], client_location[1], client_location[2])
-
-
-
-@app.get("/weather_forecast")
-async def read_weather_forecast() -> str:
-    """
-    Endpoint to get the weather forecast.
-
-    Returns:
-        str: Weather forecast message.
-    """
-    return "Weather forecast"
-
-
-
-async def main():
-    # client_ip = '127.0.0.1' #await get_ip(request=Request())
-    # client_location = await get_location_from_ip(client_ip)
-    fetch_weather_data('Stuttgart', '48.78', '9.18')
-
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="localhost", port=8000)
-    asyncio.run(main())
-    

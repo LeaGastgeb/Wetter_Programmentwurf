@@ -4,19 +4,19 @@
 # Licence: Open Source
 # Module Short Description: Generate for the next seven days a weather forecast based on the data from the last seven days and write them in the database
 
-import asyncio
+
 import numpy as np
 from database import Database
 from datetime import datetime, timedelta
 from weather_app import fetch_weather_data
 from sklearn.linear_model import LinearRegression
 
-def get_weather_report():
+async def get_weather_report():
     # get the current weather data from the database
 
     print("Getting the weather report of the last seven days.")
     # get the data from the database
-    data = asyncio.run(fetch_weather_data('Stuttgart'))
+    data = await fetch_weather_data('Stuttgart')
 
     # formatting the data
     day_reports = {"day1": [], "day2":[], "day3":[], "day4":[], "day5":[], "day6":[], "day7":[]}
@@ -72,9 +72,9 @@ def weather_forecast(run: int, para_nr: int, result: dict, day1, day2, day3, day
         result["fday" + str(run)].append(next_day)
 
 
-def get_weather_forecast():
+async def get_weather_forecast():
     db = Database('mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/weather?retryWrites=true&w=majority&appName=Weather')
-    day_reports = get_weather_report()
+    day_reports = await get_weather_report()
     result = {"fday1": [], "fday2":[], "fday3":[], "fday4":[], "fday5":[], "fday6":[], "fday7":[]}
     # get the date
     date = datetime.now()
@@ -91,7 +91,7 @@ def get_weather_forecast():
         # get todays date
         date = date + timedelta(days=1)
         # write data in the database
-        db.insert(date.strftime("%Y-%m-%d"), result["fday"+str(i+1)][0], result["fday"+str(i+1)][1], result["fday"+str(i+1)][2], result["fday"+str(i+1)][3], day_reports["day"+str(i+1)][5], True)
+        await db.insert(date.strftime("%Y-%m-%d"), result["fday"+str(i+1)][0], result["fday"+str(i+1)][1], result["fday"+str(i+1)][2], result["fday"+str(i+1)][3], day_reports["day"+str(i+1)][5], True)
         forecast= {
             'time': date.strftime("%Y-%m-%d"),
             'temperature_max': result["fday"+str(i+1)][0],
@@ -104,7 +104,7 @@ def get_weather_forecast():
         final_result.append(forecast)
 
     print(final_result)
-    return result 
+    return final_result 
 
 
 def trainings_data():
