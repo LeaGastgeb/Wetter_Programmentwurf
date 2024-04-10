@@ -38,32 +38,32 @@ async def get_location_from_ip():
     return location, lat, lon
 
 
-async def simulate_client(client_id):
-    """
-    Simulates a client requesting weather data from a server.
+# async def simulate_client(client_id):
+#     """
+#     Simulates a client requesting weather data from a server.
     
-    Args:
-        client_id (int): The ID of the client.
-    """
-    async with aiohttp.ClientSession() as session:
-        async with session.get("http://localhost:8000/weather") as response:
-            if response.status == 200:
-                data = await response.json()
-                print(f"Client {client_id}: Received weather data: {data}")
-            else:
-                print(f"Client {client_id}: Error retrieving weather data. Status code: {response.status}")
+#     Args:
+#         client_id (int): The ID of the client.
+#     """
+#     async with aiohttp.ClientSession() as session:
+#         async with session.get("http://localhost:8000/weather") as response:
+#             if response.status == 200:
+#                 data = await response.json()
+#                 print(f"Client {client_id}: Received weather data: {data}")
+#             else:
+#                 print(f"Client {client_id}: Error retrieving weather data. Status code: {response.status}")
 
 
 
-async def simulate_many_clients(num_clients: int):
-    """
-    Simulate multiple clients accessing the /weather endpoint simultaneously.
+# async def simulate_many_clients(num_clients: int):
+#     """
+#     Simulate multiple clients accessing the /weather endpoint simultaneously.
 
-    Args:
-        num_clients (int): Number of clients to simulate.
-    """
-    tasks = [fetch_weather_data("Stuttgart", "48.78", "9.18") for _ in range(num_clients)]
-    await asyncio.gather(*tasks)
+#     Args:
+#         num_clients (int): Number of clients to simulate.
+#     """
+#     tasks = [fetch_weather_data("Stuttgart", "48.78", "9.18") for _ in range(num_clients)]
+#     await asyncio.gather(*tasks)
 
 
 
@@ -107,16 +107,16 @@ async def read_weather():
         List[Dict[str, Any]]: A list of dictionaries containing weather data for the specified city.
     """
     client_location = await get_location_from_ip()
-    print(f"Location: {client_location}")
-    start_time = time.time()  
+    # print(f"Location: {client_location}")
+    # start_time = time.time()  
 
-    num_clients = 1
-    await simulate_many_clients(num_clients)
+    # num_clients = 1
+    # await simulate_many_clients(num_clients)
 
-    end_time = time.time() 
-    duration = end_time - start_time  
+    # end_time = time.time() 
+    # duration = end_time - start_time  
 
-    print(f"Processing time for /weather request: {duration} seconds")
+    # print(f"Processing time for /weather request: {duration} seconds")
 
     return await fetch_weather_data(client_location[0], client_location[1], client_location[2])
 
@@ -141,5 +141,5 @@ async def main():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8016)
+    uvicorn.run(app, host="0.0.0.0", port=8016)
     asyncio.run(main())
