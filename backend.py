@@ -26,9 +26,15 @@ async def get_location_from_ip():
         tuple: A tuple containing location information in the format (location, latitude, longitude).
     """
     g = geocoder.ip('me')
-    location = g.city
-    lat = g.latlng[0]
-    lon = g.latlng[1]
+    
+    if g:
+        location = g.city
+        lat = g.latlng[0]
+        lon = g.latlng[1]
+    else:
+        location = "Stuttgart"
+        lat = "48.78"
+        lon = "9.18"
     return location, lat, lon
 
 
@@ -135,5 +141,5 @@ async def main():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8016)
+    uvicorn.run(app, host="localhost", port=8016)
     asyncio.run(main())
