@@ -4,19 +4,33 @@
 # Licence: Open Source
 # Module Short Description: Generate for the next seven days a weather forecast based on the data from the last seven days and write them in the database
 
-
+import asyncio
 import numpy as np
 from database import Database
 from datetime import datetime, timedelta
 from weather_app import fetch_weather_data
 from sklearn.linear_model import LinearRegression
 
-async def get_weather_report():
-    # get the current weather data from the database
+async def get_weather_report(location: str):
+    """
+    Retrieves the weather report of the last seven days for a given location.
 
-    print("Getting the weather report of the last seven days.")
+    Args:
+        location (str): The location for which to retrieve the weather report.
+
+    Returns:
+        dict: A dictionary containing weather data for each of the last seven days.
+            Each day's data includes:
+                - Maximum temperature
+                - Minimum temperature
+                - Total precipitation
+                - Wind speed
+                - Date
+                - Station
+    """
+
     # get the data from the database
-    data = await fetch_weather_data('Stuttgart')
+    data = await fetch_weather_data(location)
 
     # formatting the data
     day_reports = {"day1": [], "day2":[], "day3":[], "day4":[], "day5":[], "day6":[], "day7":[]}
@@ -28,12 +42,22 @@ async def get_weather_report():
         prec_sum = data[i]['precipitation_sum']
         wind_speed = data[i]['wind_speed']
         day_reports["day" + str(i)] = [max_temp, min_temp, prec_sum, wind_speed, date, station]
-    print(data)
     return day_reports
 
 
 def weather_forecast(run: int, para_nr: int, result: dict, day1, day2, day3, day4, day5, day6, day7):
-    # generate the weather data of the next seven days based on the last seven days
+    """
+    Generates the weather forecast for the next seven days based on the last seven days.
+
+    Args:
+        run (int): The run number for the forecast.
+        paraNr (int): The parameter number for the weather data.
+        result (dict): The dictionary to store the forecast results.
+        day1, day2, day3, day4, day5, day6, day7: Weather data for the last seven days.
+
+    Returns:
+        None
+    """
     number = 8
 
     # example data -> the last seven days
@@ -60,10 +84,12 @@ def weather_forecast(run: int, para_nr: int, result: dict, day1, day2, day3, day
         diff = pred2 - pred1
         next_day = pred + diff
 
-        # preventing negative values for precipitation_sum
+        # preventing negative values for precipitation_sum and wind_speed
         if (para_nr == 2) and (next_day < 0):
             next_day = 0.0
-
+        elif (para_nr == 3) and (next_day < 0):
+            next_day = 0.0
+        
         number = number + 1
         X = np.append(X, number).reshape(-1, 1)
         y = np.append(y, next_day)
@@ -72,9 +98,26 @@ def weather_forecast(run: int, para_nr: int, result: dict, day1, day2, day3, day
         result["fday" + str(run)].append(next_day)
 
 
-async def get_weather_forecast():
+async def get_weather_forecast(location= 'Stuttgart'):
+    """
+    Retrieves the weather forecast for the next seven days for a given location.
+
+    Args:
+        location (str): The location for which to retrieve the weather forecast. Default is 'Stuttgart'.
+
+    Returns:
+        list: A list of dictionaries containing the weather forecast for each of the next seven days.
+            Each dictionary includes:
+                - Date
+                - Maximum temperature
+                - Minimum temperature
+                - Precipitation sum
+                - Wind speed
+                - Station
+                - Predicted (True for forecast data)
+    """
     db = Database('mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/weather?retryWrites=true&w=majority&appName=Weather')
-    day_reports = await get_weather_report()
+    day_reports = await get_weather_report(location)
     result = {"fday1": [], "fday2":[], "fday3":[], "fday4":[], "fday5":[], "fday6":[], "fday7":[]}
     # get the date
     date = datetime.now()
@@ -91,24 +134,25 @@ async def get_weather_forecast():
         # get todays date
         date = date + timedelta(days=1)
         # write data in the database
-        await db.insert(date.strftime("%Y-%m-%d"), result["fday"+str(i+1)][0], result["fday"+str(i+1)][1], result["fday"+str(i+1)][2], result["fday"+str(i+1)][3], day_reports["day"+str(i+1)][5], True)
+        await db.insert(date.strftime("%Y-%m-%d"), round(result["fday"+str(i+1)][0], 1), round(result["fday"+str(i+1)][1], 1), round(result["fday"+str(i+1)][2], 1), round(result["fday"+str(i+1)][3], 1), day_reports["day"+str(i+1)][5], True)
         forecast= {
             'time': date.strftime("%Y-%m-%d"),
-            'temperature_max': result["fday"+str(i+1)][0],
-            'temperature_min': result["fday"+str(i+1)][1],
-            'precipitation_sum': result["fday"+str(i+1)][2], 
-            'wind_speed': result["fday"+str(i+1)][3], 
+            'temperature_max': round(result["fday"+str(i+1)][0], 1),
+            'temperature_min': round(result["fday"+str(i+1)][1], 1),
+            'precipitation_sum': round(result["fday"+str(i+1)][2], 1), 
+            'wind_speed': round(result["fday"+str(i+1)][3], 1), 
             'station': day_reports["day"+str(i+1)][5], 
             'predicted': True
             }
         final_result.append(forecast)
 
-    print(final_result)
     return final_result 
 
 
 def trainings_data():
-    # data for testing
+    """
+        Function which return testdata
+    """
     # day = [max_temp, min_temp, prec_sum, wind_speed]
     day1 = [18, 4, 0.2, 14]
     day2 = [13, 9, 0.1, 25]
@@ -131,4 +175,5 @@ if __name__ == "__main__":
 
         print(result)
     else:
-        get_weather_forecast()
+        asyncio.run(get_weather_forecast())
+    print('Finished')
