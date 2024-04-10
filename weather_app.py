@@ -1,23 +1,21 @@
 # Autor : Lea Gastgeb
-# Datum: 08.04.2024
-# Version: 0.3
+# Datum: 09.04.2024
+# Version: 0.4
 # Licence: Open Source
 # Module Short Description: Integration of the weather API and the database
 
 
 import aiohttp
 from datetime import datetime, timedelta
-from fastapi import FastAPI,  HTTPException
+from fastapi import HTTPException
 
 from database import Database
-
-
-app = FastAPI()
 
 async def fetch_weather_data(city, lat=48.78, lon=9.18):
     """
     Fetch weather data for a given city from the weather API or the database.
 
+    
     Args:
         city (str): The name of the city for which weather data is to be fetched.
 

@@ -1,3 +1,9 @@
+# Autor : Lea Gastgeb 
+# Datum: 09.04.2024
+# Version: 0.3
+# Licence: Open Source
+# Module Short Description: 
+
 import aiohttp
 import asyncio
 from fastapi import FastAPI
@@ -129,6 +135,5 @@ async def main():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
     asyncio.run(main())
-    
