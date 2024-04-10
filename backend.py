@@ -2,7 +2,7 @@
 # Datum: 09.04.2024
 # Version: 0.3
 # Licence: Open Source
-# Module Short Description: 
+# Module Short Description: Backend for the weather forecast system
 
 import aiohttp
 import asyncio
@@ -135,5 +135,5 @@ async def main():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8016)
     asyncio.run(main())
