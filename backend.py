@@ -12,8 +12,9 @@ import logging
 from weather_app import fetch_weather_data
 from own_weather_forecast import get_weather_forecast
 
+
 logging.basicConfig(
-    level=logging.WARNING,  # Protokollierungslevel festlegen
+    level=logging.INFO,  # Protokollierungslevel festlegen
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)

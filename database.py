@@ -12,7 +12,7 @@ import logging
 
 
 logging.basicConfig(
-    level=logging.WARNING,  
+    level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ class Database:
 
     async def delete(self):
         try:
-            await self.db.collection.delete_many({})
+            await self.db.weather_data.delete_many({})
             logger.info(f"Wetterdaten erfolgreich gelöscht")
         except PyMongoError as e:
             logger.error(f"Fehler beim Löschen der Daten: {str(e)}")
@@ -86,7 +86,7 @@ class Database:
 
     async def fetch_station(self, station):
         try:
-            data = await self.db.collection.find({"station": station}).to_list(length=None)
+            data = await self.db.weather_data.find({"station": station}).to_list(length=None)
             logger.info(f"Wetterdaten für {station} erfolgreich abgerufen")
             return data
         except PyMongoError as e:

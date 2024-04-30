@@ -30,7 +30,7 @@ async def fetch_weather_data(city, lat=48.78, lon=9.18):
         List[Dict[str, Any]]: A list of dictionaries containing weather data for the specified city.
     """
     try:
-        db = Database('mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/weather?retryWrites=true&w=majority&appName=Weather')
+        db = Database('mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/?retryWrites=true&w=majority&appName=Weather')
         db_data = await db.fetch_station(city)  # Await the execution of the coroutine function
 
         station_data_available = True  # Initialize with True
@@ -90,7 +90,6 @@ async def fetch_weather_data(city, lat=48.78, lon=9.18):
 
                     else:
                         logger.warning(f"Fehler beim Abrufen der Wetterdaten. Status: {response.status}")
-                        print("Error retrieving weather data. Status Code: ", response.status)
                         return None
                     
     except aiohttp.ClientError as e:
