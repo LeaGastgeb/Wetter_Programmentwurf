@@ -1,6 +1,6 @@
 # Autor : Lea Gastgeb
-# Datum: 09.04.2024
-# Version: 0.4
+# Datum: 30.04.2024
+# Version: 0.5
 # Licence: Open Source
 # Module Short Description: Integration of the weather API and the database
 
@@ -8,8 +8,15 @@
 import aiohttp
 from datetime import datetime, timedelta
 from fastapi import HTTPException
+import logging
 
 from database import Database
+
+logging.basicConfig(
+    level=logging.WARNING,  # Protokollierungslevel festlegen
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 async def fetch_weather_data(city, lat=48.78, lon=9.18):
     """
@@ -33,18 +40,13 @@ async def fetch_weather_data(city, lat=48.78, lon=9.18):
                 date = (datetime.now() - timedelta(days=day)).strftime('%Y-%m-%d')
                 condition_1 = entry['time'] == date
                 condition_2 = not entry["predicted"]
-                # print(f"Day: {day}, Time: {entry['time']}, time_count: {date},Predicted: {entry['predicted']}, Condition 1: {condition_1}, Condition 2: {condition_2}")
                 if condition_1 and condition_2:
                     day_conditions_met = True  # Conditions met for this day
                     break
             if not day_conditions_met:
                 station_data_available = False  # Conditions not met for this day
                 break
-        # station_data_available = all(
-        #     entry['time'] == (datetime.now() - timedelta(days=day)).strftime('%Y-%m-%d') and
-        #     not entry["predicted"]
-        #     for day in range(7) for entry in db_data
-        # )
+        
         if station_data_available:
             print("Station data available in the database")            
             for entry in db_data:
@@ -67,6 +69,7 @@ async def fetch_weather_data(city, lat=48.78, lon=9.18):
                 async with session.get(url, params=params) as response:
                     if response.status == 200:
                         data = await response.json()
+                        logger.info(f"Erfolgreiche Antwort von der Wetter-API: {data}")
 
                         time = data['daily']['time']
                         temperature_max = data['daily']['temperature_2m_max']
@@ -86,13 +89,23 @@ async def fetch_weather_data(city, lat=48.78, lon=9.18):
                         return db_data
 
                     else:
+                        logger.warning(f"Fehler beim Abrufen der Wetterdaten. Status: {response.status}")
                         print("Error retrieving weather data. Status Code: ", response.status)
                         return None
                     
     except aiohttp.ClientError as e:
-        error_message = f"Error making HTTP request: {str(e)}"
-        raise HTTPException(status_code=500, detail=error_message)
+        logger.error(f"HTTP Client Error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fehler bei der HTTP-Anfrage: {str(e)}"
+        )
 
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ein unerwarteter Fehler ist aufgetreten: {str(e)}"
+        )
 
 
 def validate_data(data) :
@@ -109,17 +122,21 @@ def validate_data(data) :
         return False
     
     try:
-        # Datum validieren
+        
         datetime.strptime(data['time'], '%Y-%m-%d')
-        # Temperaturwerte validieren
+        
         if not (-50 <= data['temperature_max'] <= 50 and -50 <= data['temperature_min'] <= data['temperature_max']):
             return False
         if 'precipitation_sum' in data and not (0 <= data['precipitation_sum'] <= 1000):  # Annahme: Maximal 1000 mm
             return False
         if 'wind_speed_10m_max' in data and not (0 <= data['wind_speed_10m_max'] <= 100):  # Annahme: Maximal 200 km/h
             return False
-    except ValueError:
-        return False
+    except ValueError as e:
+        logger.error(f"Fehler bei der Datenvalidierung: {str(e)}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Fehler bei der Datenvalidierung: {str(e)}"
+        )
     
     return True
 
@@ -135,5 +152,5 @@ def clean_data(data):
     Returns:
         List[Dict[str, Any]]: Die bereinigten Wetterdaten.
     """
-    cleaned_data = [record for record in data if validate_data(record)]
-    return cleaned_data
+
+    return [record for record in data if validate_data(record)]
