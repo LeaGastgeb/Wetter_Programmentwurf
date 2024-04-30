@@ -4,16 +4,19 @@
 # Licence: Open Source
 # Module Short Description: Backend for the weather forecast system
 
-import aiohttp
 import asyncio
 from fastapi import FastAPI
-from functools import lru_cache
-import time
 import geocoder
+import logging
 
 from weather_app import fetch_weather_data
 from own_weather_forecast import get_weather_forecast
 
+logging.basicConfig(
+    level=logging.WARNING,  # Protokollierungslevel festlegen
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -25,14 +28,19 @@ async def get_location_from_ip():
     Returns:
         tuple: A tuple containing location information in the format (location, latitude, longitude).
     """
-    g = geocoder.ip("me")
-    if not g or not g.latlng:
+    try:
+        g = geocoder.ip("me")
+        if not g or not g.latlng:
+            logger.warning("Geocoder returned no data or lat/lng not available. Using default location.")
+            return "Stuttgart", "48.78", "9.18"  # Standardwerte
+        else:
+            location = g.city if g.city else "Stuttgart"
+            lat = g.latlng[0]
+            lon = g.latlng[1]
+            return location, lat, lon
+    except Exception as e:
+        logger.error(f"Fehler beim Abrufen des Standorts: {str(e)}")
         return "Stuttgart", "48.78", "9.18"  # Standardwerte
-    else:
-        location = g.city if g.city else "Stuttgart"
-        lat = g.latlng[0]
-        lon = g.latlng[1]
-        return location, lat, lon
     
 
 
