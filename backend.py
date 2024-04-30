@@ -84,5 +84,5 @@ async def main():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8016)
+    uvicorn.run(app, host="0.0.0.0", port=8016)
     asyncio.run(main())
