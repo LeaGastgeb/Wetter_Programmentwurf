@@ -146,6 +146,7 @@ async def get_weather_forecast(location= 'Stuttgart'):
             }
         final_result.append(forecast)
 
+    print(final_result)
     return final_result 
 
 
@@ -165,7 +166,7 @@ def test_data():
     return day1, day2, day3, day4, day5, day6, day7, day8
 
 if __name__ == "__main__":
-    test = True
+    test = False
     if test == True:
         day1, day2, day3, day4, day5, day6, day7, day8 = test_data()
         result = {"fday1": [], "fday2":[], "fday3":[], "fday4":[], "fday5":[], "fday6":[], "fday7":[]}

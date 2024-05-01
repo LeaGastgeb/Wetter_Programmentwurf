@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from weather_app import fetch_weather_data
 from sklearn.linear_model import LinearRegression
-from own_weather_forecast import get_weather_forecast
+from weather_forecast import get_weather_forecast
 
 
 def real_data():
@@ -19,13 +19,13 @@ def real_data():
         Function which return real data - must be adjusted manually
     """
     # day = [max_temp, min_temp, prec_sum, wind_speed]
-    day1 = [18, 10, 0.36, 14]
-    day2 = [15, 9, 0.0, 19]
-    day3 = [17, 11, 0.08, 10]
-    day4 = [19, 11, 0.11, 13]
-    day5 = [19, 12, 0.21, 10]
-    day6 = [17, 11, 0.18, 13]
-    day7 = [18, 10, 0.9, 13]
+    day1 = [15, 8, 0.32, 19]
+    day2 = [18, 10, 0.0, 13]
+    day3 = [17, 9, 0.07, 16]
+    day4 = [19, 9, 0.09, 11]
+    day5 = [19, 10, 0.17, 13]
+    day6 = [19, 10, 0.13, 14]
+    day7 = [19, 9, 0.0, 19]
     return day1, day2, day3, day4, day5, day6, day7
 
 def formate_weather_forecast():
