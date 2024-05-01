@@ -149,7 +149,7 @@ async def get_weather_forecast(location= 'Stuttgart'):
     return final_result 
 
 
-def trainings_data():
+def test_data():
     """
         Function which return testdata
     """
@@ -165,15 +165,18 @@ def trainings_data():
     return day1, day2, day3, day4, day5, day6, day7, day8
 
 if __name__ == "__main__":
-    test = False
+    test = True
     if test == True:
-        day1, day2, day3, day4, day5, day6, day7, day8 = trainings_data()
+        day1, day2, day3, day4, day5, day6, day7, day8 = test_data()
         result = {"fday1": [], "fday2":[], "fday3":[], "fday4":[], "fday5":[], "fday6":[], "fday7":[]}
 
         for para_nr in range (0, 4):
             weather_forecast(1, para_nr, result, day1, day2, day3, day4, day5, day6, day7)
-
-        print(result)
+        expected_result = {'fday1': [14.0, 8.571428571428573, 0.1285714285714286, 18.0], 'fday2': [13.649122807017545, 9.223057644110273, 0.11854636591478701, 17.899749373433583], 'fday3': [13.421052631578949, 9.646616541353382, 0.11203007518796998, 17.834586466165412], 'fday4': [13.192982456140351, 10.070175438596491, 0.10551378446115289, 17.769423558897238], 'fday5': [12.964912280701757, 10.493734335839598, 0.09899749373433588, 17.70426065162907], 'fday6': [12.736842105263161, 10.917293233082706, 0.09248120300751882, 17.6390977443609], 'fday7': [12.508771929824565, 11.34085213032581, 0.08596491228070181, 17.573934837092725]}
+        if(result==expected_result):
+            print('\033[32mForecast works.\033[0m')
+        else:
+            print('\033[31m \nError in weather forecast!\n\033[0m')
     else:
         asyncio.run(get_weather_forecast())
     print('Finished')
