@@ -82,7 +82,8 @@ async def read_weather_forecast():
     Returns:
         str: Weather forecast message.
     """
-    return await get_weather_forecast()
+    client_location = await get_location_from_ip()
+    return await get_weather_forecast(client_location[0])
 
 
 

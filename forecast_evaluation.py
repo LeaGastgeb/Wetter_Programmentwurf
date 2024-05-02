@@ -29,17 +29,44 @@ def real_data():
     return day1, day2, day3, day4, day5, day6, day7
 
 def formate_weather_forecast():
+    """
+    Formats the weather forecast data obtained from get_weather_forecast().
+
+    Returns:
+        dict: A dictionary containing formatted weather forecast data for each of the next seven days.
+            Each day's data includes:
+                - Maximum temperature
+                - Minimum temperature
+                - Total precipitation
+                - Wind speed
+    """
+
     forecast = asyncio.run(get_weather_forecast())
     day_reports = {}
+
+    # Format forecast data for each day
     for i in range(0, len(forecast)):
         max_temp = forecast[i]['temperature_max']
         min_temp = forecast[i]['temperature_min']
         prec_sum = forecast[i]['precipitation_sum']
         wind_speed = forecast[i]['wind_speed']
-        day_reports["fday" + str(i+1)] = [max_temp, min_temp, prec_sum, wind_speed]
+
+        day_reports["fday" + str(i + 1)] = [max_temp, min_temp, prec_sum, wind_speed]
+
     return day_reports
 
+
 def generate_forecast_graphics(para_nr:int):
+    """
+    Generates a comparison plot between the forecasted and real weather data.
+
+    Args:
+        para_nr (int): Parameter number for weather data (0 for maximum temperature, 1 for minimum temperature,
+                       2 for total precipitation, 3 for wind speed).
+
+    Returns:
+        None
+    """
     # get values
     own_forecast=formate_weather_forecast()
     day1, day2, day3, day4, day5, day6, day7 = real_data()
@@ -78,8 +105,15 @@ def generate_forecast_graphics(para_nr:int):
 
 
 if __name__ == "__main__":
-    forecast=formate_weather_forecast()
+    # Generate weather forecast data
+    forecast = formate_weather_forecast()
+    
+    # Generate forecast graphics for each parameter
     for para_nr in range(0, 4):
         generate_forecast_graphics(para_nr)
+    
+    # Print the forecast data
     print(forecast)
+    
+    # Print finished message
     print('Finished')
