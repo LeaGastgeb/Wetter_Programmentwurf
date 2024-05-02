@@ -7,32 +7,50 @@ import unittest
 from unittest.mock import MagicMock
 from weather_app import validate_data, fetch_weather_data, clean_data
 import asyncio
+from database import Database
 
 
 class TestWeatherFunctions(unittest.TestCase):
+    def setUp(self):
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        self.db = Database("mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/?retryWrites=true&w=majority&appName=Weather")
+
+    def tearDown(self):
+        self.loop.close()
+
+    def test_insert_data(self):
+            self.loop.run_until_complete(self.db.insert("2024-06-30", 25, 15, 10, 5, "TestStation"))
+            data = self.loop.run_until_complete(self.db.fetch_station("TestStation"))
+            self.assertEqual(len(data), 1)
     
+    def test_fetch_data(self):
+        data = self.loop.run_until_complete(self.db.fetch_station("TestStation"))
+        self.assertEqual(len(data), 0)
+    
+    def test_delete_data(self):
+        self.loop.run_until_complete(self.db.delete_station("TestStation"))
+        data = self.loop.run_until_complete(self.db.fetch_station("TestStation"))
+        self.assertEqual(len(data), 0)
+
     def test_fetch_weather_data_api_success(self):
-        # Mock für eine erfolgreiche API-Antwort
         mock_response = MagicMock()
         mock_response.status = 200
         mock_response.json.return_value = {'daily': {'time': ['2024-04-09'], 'temperature_2m_max': [20], 'temperature_2m_min': [10], 'precipitation_sum': [5], 'wind_speed_10m_max': [15]}}
 
         with unittest.mock.patch('aiohttp.ClientSession.get') as mock_get:
             mock_get.return_value.__aenter__.return_value = mock_response
-            result = asyncio.run(fetch_weather_data('Stuttgart'))
+            result = self.loop.run_until_complete(fetch_weather_data('Stuttgart'))
             self.assertIsNotNone(result)
 
     def test_fetch_weather_data_api_failure(self):
-        # Mock für eine fehlgeschlagene API-Antwort
         mock_response = MagicMock()
         mock_response.status = 404
 
         with unittest.mock.patch('aiohttp.ClientSession.get') as mock_get:
             mock_get.return_value.__aenter__.return_value = mock_response
-            result = asyncio.run(fetch_weather_data('Berlin'))
+            result = self.loop.run_until_complete(fetch_weather_data('Berlin'))
             self.assertIsNone(result)
-
-    # Weitere Tests für fetch_weather_data mit Datenbankzugriff können hinzugefügt werden
 
     def test_validate_data_valid(self):
         valid_data = {
@@ -47,10 +65,10 @@ class TestWeatherFunctions(unittest.TestCase):
     def test_validate_data_invalid(self):
         invalid_data = {
             'time': '2024-04-09',
-            'temperature_max': 80,  # Ungültige Temperatur
-            'temperature_min': 90,  # Ungültige Temperatur
-            'precipitation_sum': -5,  # Negative Niederschlagsmenge
-            'wind_speed_10m_max': 150  # Hohe Windgeschwindigkeit
+            'temperature_max': 80,  
+            'temperature_min': 90,  
+            'precipitation_sum': -5,  
+            'wind_speed_10m_max': 150  
         }
         self.assertFalse(validate_data(invalid_data))
 

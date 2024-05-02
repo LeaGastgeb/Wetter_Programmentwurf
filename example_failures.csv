@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences
+GET,/weather,HTTPError('500 Server Error: Internal Server Error for url: /weather'),178
