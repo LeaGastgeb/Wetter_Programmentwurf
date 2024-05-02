@@ -10,7 +10,7 @@ import geocoder
 import logging
 
 from weather_app import fetch_weather_data
-from own_weather_forecast import get_weather_forecast
+from weather_forecast import get_weather_forecast
 
 
 logging.basicConfig(
