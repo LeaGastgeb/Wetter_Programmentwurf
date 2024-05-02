@@ -14,7 +14,7 @@ from weather_forecast import get_weather_forecast
 
 
 logging.basicConfig(
-    level=logging.INFO,  # Protokollierungslevel festlegen
+    level=logging.INFO,  
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ async def get_location_from_ip():
         g = geocoder.ip("me")
         if not g or not g.latlng:
             logger.warning("Geocoder returned no data or lat/lng not available. Using default location.")
-            return "Stuttgart", "48.78", "9.18"  # Standardwerte
+            return "Stuttgart", "48.78", "9.18" 
         else:
             location = g.city if g.city else "Stuttgart"
             lat = g.latlng[0]
@@ -41,7 +41,7 @@ async def get_location_from_ip():
             return location, lat, lon
     except Exception as e:
         logger.error(f"Fehler beim Abrufen des Standorts: {str(e)}")
-        return "Stuttgart", "48.78", "9.18"  # Standardwerte
+        return "Stuttgart", "48.78", "9.18"  
     
 
 

@@ -13,7 +13,7 @@ import logging
 from database import Database
 
 logging.basicConfig(
-    level=logging.WARNING,  # Protokollierungslevel festlegen
+    level=logging.WARNING,  
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
@@ -31,20 +31,20 @@ async def fetch_weather_data(city, lat=48.78, lon=9.18):
     """
     try:
         db = Database('mongodb+srv://weatherclient:verteilteSysteme@weather.nncm5t4.mongodb.net/?retryWrites=true&w=majority&appName=Weather')
-        db_data = await db.fetch_station(city)  # Await the execution of the coroutine function
+        db_data = await db.fetch_station(city)  
 
-        station_data_available = True  # Initialize with True
+        station_data_available = True  
         for day in range(7):
-            day_conditions_met = False  # Initialize with False for the current day
+            day_conditions_met = False  
             for entry in db_data:
                 date = (datetime.now() - timedelta(days=day)).strftime('%Y-%m-%d')
                 condition_1 = entry['time'] == date
                 condition_2 = not entry["predicted"]
                 if condition_1 and condition_2:
-                    day_conditions_met = True  # Conditions met for this day
+                    day_conditions_met = True  
                     break
             if not day_conditions_met:
-                station_data_available = False  # Conditions not met for this day
+                station_data_available = False  
                 break
         
         if station_data_available:
